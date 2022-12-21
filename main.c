@@ -138,9 +138,9 @@ complex fourthScheme (float R1, float R2, float L, float C, float omega) {
 
 void displayComplex(complex z) {
     if(z.im >= 0) {
-        printf("%f + i*%f", z.re, z.im);
+        printf("%g + i*%g", z.re, z.im);
     } else {
-        printf("%f - i*%f", z.re, fabs(z.im));
+        printf("%g - i*%g", z.re, fabs(z.im));
     }
 }
 
