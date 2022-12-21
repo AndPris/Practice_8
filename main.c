@@ -67,6 +67,20 @@ void borders(float *low, float *top) {
     } while(cond);
 }
 
+void step(float *var, float range) {
+    char cond;
+    do {
+        cond = 0;
+        floatInput(var);
+
+        if(*var > range) {
+            printf("df can't be higher then %g\n", range);
+            fflush(stdin);
+            cond = 1;
+        }
+    } while(cond);
+}
+
 complex div(complex z1, complex z2) { // division of two complex numbers
     complex z;
     z.re = (z1.re * z2.re + z1.im * z2.im) / (z2.re * z2.re + z2.im * z2.im);
@@ -138,7 +152,7 @@ void compute1_2(complex (*scheme) (float, float, float, float), float R, float L
         omega = 2 * M_PI * fmin;
         f0 = 1 / (2 * M_PI * sqrt(L*C));
         z = (*scheme)(R, L, C, omega);
-        printf("%7.2f%28f\t\t\t", fmin, f0);
+        printf("%7g%28f\t\t\t", fmin, f0);
         displayComplex(z);
         printf("\n");
         fmin += df;
@@ -153,7 +167,7 @@ void compute3_4(complex (*scheme) (float, float, float, float, float), float R1,
         omega = 2 * M_PI * fmin;
         f0 = 1 / (2 * M_PI * sqrt(L*C));
         z = (*scheme)(R1, R2, L, C, omega);
-        printf("%7.2f%28f\t\t\t", fmin, f0);
+        printf("%7g%28f\t\t\t", fmin, f0);
         displayComplex(z);
         printf("\n");
         fmin += df;
@@ -180,7 +194,7 @@ int main() {
     floatInput(&C);
     borders(&fmin, &fmax);
     printf("df:");
-    floatInput(&df);
+    step(&df, fmax-fmin);
 
     switch (scheme) {
         case 1:
