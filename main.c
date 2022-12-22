@@ -2,8 +2,8 @@
 #include <math.h>
 
 typedef struct Complex {
-    float re;
-    float im;
+    double re;
+    double im;
 } complex;
 
 void noCharShort(short *var) { //checking for characters
@@ -35,13 +35,13 @@ short choice(short *var) {
     } while(cond);
 }
 
-void floatInput(float *var) { //checking for characters and >=0
+void doubleInput(double *var) { //checking for characters and >=0
     char cond, ch;
     do {
         cond = 0;
-        scanf("%f%c", var, &ch);
+        scanf("%lf%c", var, &ch);
 
-        if(ch != '\n' || *var < 0) {
+        if(ch != '\n' || *var <= 0 || *var > 1e10) {
             printf("Invalid data\n");
             cond = 1;
             fflush(stdin);
@@ -50,14 +50,14 @@ void floatInput(float *var) { //checking for characters and >=0
 
 }
 
-void borders(float *low, float *top) {
+void borders(double *low, double *top) {
     char cond;
     do {
         cond = 0;
         printf("fmin:");
-        floatInput(low);
+        doubleInput(low);
         printf("fmax:");
-        floatInput(top);
+        doubleInput(top);
 
         if(*low >= *top) {
             printf("fmin is higher then fmax or equals to it\n");
@@ -67,16 +67,24 @@ void borders(float *low, float *top) {
     } while(cond);
 }
 
-void step(float *var, float range) {
+void step(double *var, double range) {
     char cond;
     do {
         cond = 0;
-        floatInput(var);
+        doubleInput(var);
 
         if(*var > range) {
             printf("df can't be higher then %g\n", range);
             fflush(stdin);
             cond = 1;
+            continue;
+        }
+
+        if(*var == 0) {
+            printf("df can't be 0\n", range);
+            fflush(stdin);
+            cond = 1;
+            continue;
         }
     } while(cond);
 }
@@ -88,7 +96,7 @@ complex div(complex z1, complex z2) { // division of two complex numbers
     return z;
 }
 
-complex firstScheme (float R, float L, float C, float omega) {
+complex firstScheme (double R, double L, double C, double omega) {
     complex z1, z2;
 
     z1.re = L/C;
@@ -100,7 +108,7 @@ complex firstScheme (float R, float L, float C, float omega) {
     return div(z1, z2);
 }
 
-complex secondScheme (float R, float L, float C, float omega) {
+complex secondScheme (double R, double L, double C, double omega) {
     complex z1, z2;
 
     z1.re = L/C;
@@ -112,7 +120,7 @@ complex secondScheme (float R, float L, float C, float omega) {
     return div(z1, z2);
 }
 
-complex thirdScheme (float R1, float R2, float L, float C, float omega) {
+complex thirdScheme (double R1, double R2, double L, double C, double omega) {
     complex z1, z2;
 
     z1.re = R1 * R2;
@@ -124,7 +132,7 @@ complex thirdScheme (float R1, float R2, float L, float C, float omega) {
     return div(z1, z2);
 }
 
-complex fourthScheme (float R1, float R2, float L, float C, float omega) {
+complex fourthScheme (double R1, double R2, double L, double C, double omega) {
     complex z1, z2;
 
     z1.re = R1 * R2 + L/C;
@@ -144,54 +152,66 @@ void displayComplex(complex z) {
     }
 }
 
-void compute1_2(complex (*scheme) (float, float, float, float), float R, float L, float C, float fmin, float fmax, float df) {
-    float omega, f0;
+void compute1_2(complex (*scheme) (double, double, double, double), double R, double L, double C, double fmin, double fmax, double df) {
+    double omega, f0;
     complex z;
-    printf("\nFrequency\t\tResonance frequency\t\tResistance\n");
-    while (fmin <= fmax) {
+    f0 = 1 / (2 * M_PI * sqrt(L*C));
+    printf("Resonance frequency: %e", f0);
+    printf("\nFrequency\tResistance\n");
+    while (fmin < fmax) {
         omega = 2 * M_PI * fmin;
-        f0 = 1 / (2 * M_PI * sqrt(L*C));
         z = (*scheme)(R, L, C, omega);
-        printf("%7g%28f\t\t\t", fmin, f0);
+        printf("%7g\t\t", fmin);
         displayComplex(z);
         printf("\n");
         fmin += df;
     }
+    omega = 2 * M_PI * fmax;
+    z = (*scheme)(R, L, C, omega);
+    printf("%7g\t\t", fmax);
+    displayComplex(z);
+    printf("\n");
 }
 
-void compute3_4(complex (*scheme) (float, float, float, float, float), float R1, float R2, float L, float C, float fmin, float fmax, float df) {
-    float omega, f0;
+void compute3_4(complex (*scheme) (double, double, double, double, double), double R1, double R2, double L, double C, double fmin, double fmax, double df) {
+    double omega, f0;
     complex z;
-    printf("\nFrequency\t\tResonance frequency\t\tResistance\n");
+    f0 = 1 / (2 * M_PI * sqrt(L*C));
+    printf("Resonance frequency: %e", f0);
+    printf("\nFrequency\tResistance\n");
     while (fmin <= fmax) {
         omega = 2 * M_PI * fmin;
-        f0 = 1 / (2 * M_PI * sqrt(L*C));
         z = (*scheme)(R1, R2, L, C, omega);
-        printf("%7g%28f\t\t\t", fmin, f0);
+        printf("%7g\t\t", fmin);
         displayComplex(z);
         printf("\n");
         fmin += df;
     }
+    omega = 2 * M_PI * fmax;
+    z = (*scheme)(R1, R2, L, C, omega);
+    printf("%7g\t\t", fmax);
+    displayComplex(z);
+    printf("\n");
 }
 
 int main() {
-    float R, R1, R2, L, C, fmin, fmax, df;
+    double R, R1, R2, L, C, fmin, fmax, df;
     short scheme;
     printf("Enter the number of scheme (1, 2, 3 or 4):");
     choice(&scheme);
     if (scheme == 1 || scheme == 2) {
         printf("R:");
-        floatInput(&R);
+        doubleInput(&R);
     } else {
         printf("R1:");
-        floatInput(&R1);
+        doubleInput(&R1);
         printf("R2:");
-        floatInput(&R2);
+        doubleInput(&R2);
     }
     printf("L:");
-    floatInput(&L);
+    doubleInput(&L);
     printf("C:");
-    floatInput(&C);
+    doubleInput(&C);
     borders(&fmin, &fmax);
     printf("df:");
     step(&df, fmax-fmin);
